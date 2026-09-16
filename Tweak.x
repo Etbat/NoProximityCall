@@ -1,19 +1,24 @@
-#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
-static void createTestFile(void)
+@interface SpringBoard : NSObject
+@end
+
+
+%hook SpringBoard
+
+- (void)applicationDidFinishLaunching:(id)application
 {
-    NSString *path = @"/var/mobile/NoProximityCall_loaded.txt";
+    %orig;
 
-    NSString *text = @"NoProximityCall SpringBoard loaded";
+    UIAlertView *alert =
+    [[UIAlertView alloc]
+     initWithTitle:@"NoProximityCall"
+     message:@"SpringBoard Inject OK"
+     delegate:nil
+     cancelButtonTitle:@"OK"
+     otherButtonTitles:nil];
 
-    [text writeToFile:path
-           atomically:YES
-             encoding:NSUTF8StringEncoding
-                error:nil];
+    [alert show];
 }
 
-
-%ctor
-{
-    createTestFile();
-}
+%end
