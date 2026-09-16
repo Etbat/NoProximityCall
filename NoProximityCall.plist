@@ -8,8 +8,7 @@
     <dict>
         <key>Processes</key>
         <array>
-            <string>MobilePhone</string>
-            <string>WeChat</string>
+            <string>SpringBoard</string>
         </array>
     </dict>
 </dict>
