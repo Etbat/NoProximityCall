@@ -5,20 +5,30 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Setup Theos
-        uses: madmachineio/theos-action@v1
-        with:
-          theos-version: master
+      - name: Install dependencies
+        run: |
+          brew install git make ldid
+
+      - name: Clone official Theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          export THEOS=~/theos
+          ~/theos/bin/install-theos
+        env:
+          THEOS: $HOME/theos
 
       - name: Build DEB
         run: |
+          export THEOS=~/theos
           make clean
           make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+        env:
+          THEOS: $HOME/theos
 
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
