@@ -2,16 +2,37 @@ name: Build Tweak
 on:
   push:
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Theos
-        uses: theos/setup-theos@v1
-      - name: Build package
-        run: make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
-      - name: Upload deb
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git make clang ldid libxml2-dev
+
+      - name: Clone RootHide Theos
+        run: |
+          git clone --recursive https://github.com/roothide/theos.git ~/theos
+          export THEOS=~/theos
+          ~/theos/bin/install-theos
+        env:
+          THEOS: $HOME/theos
+
+      - name: Build DEB
+        run: |
+          export THEOS=~/theos
+          make clean
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+        env:
+          THEOS: $HOME/theos
+
+      - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
+          name: NoProximityCall-deb
           path: packages/*.deb
