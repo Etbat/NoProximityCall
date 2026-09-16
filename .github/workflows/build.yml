@@ -1,3 +1,4 @@
+```yaml
 name: Build NoProximityCall
 
 on:
@@ -15,20 +16,43 @@ jobs:
       - name: Install RootHide Theos
         shell: bash
         run: |
-          bash -c "$(curl -fsSL https://raw.githubusercontent.com/roothide/theos/master/bin/install-theos)"
+          export THEOS="$HOME/theos"
+
+          git clone --recursive \
+            https://github.com/roothide/theos.git \
+            "$THEOS"
 
       - name: Install iOS SDK
         shell: bash
         run: |
-          mkdir -p "$HOME/theos/sdks"
+          export THEOS="$HOME/theos"
 
-          curl -L \
-            "https://github.com/theos/sdks/releases/latest/download/iPhoneOS16.5.sdk.tar.xz" \
+          mkdir -p "$THEOS/sdks"
+
+          echo "Downloading iPhoneOS16.5.sdk..."
+
+          curl -fL --retry 5 --retry-delay 3 \
+            "https://github.com/theos/sdks/releases/download/11.4/iPhoneOS16.5.sdk.tar.xz" \
             -o /tmp/iPhoneOS16.5.sdk.tar.xz
 
           tar -xJf \
             /tmp/iPhoneOS16.5.sdk.tar.xz \
-            -C "$HOME/theos/sdks"
+            -C "$THEOS/sdks"
+
+          echo "Installed SDKs:"
+          ls -lah "$THEOS/sdks"
+
+      - name: Check Theos
+        shell: bash
+        run: |
+          export THEOS="$HOME/theos"
+
+          echo "THEOS=$THEOS"
+          echo "SDKs:"
+          ls -lah "$THEOS/sdks"
+
+          echo "Theos version:"
+          "$THEOS/bin/logos.pl" --version || true
 
       - name: Build
         shell: bash
@@ -55,3 +79,4 @@ jobs:
           name: NoProximityCall-RootHide
           path: packages/*.deb
           if-no-files-found: error
+```
