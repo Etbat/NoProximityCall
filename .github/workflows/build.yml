@@ -6,10 +6,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ghcr.io/theos/theos:latest
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+
+      - name: Setup Theos
+        uses: madmachineio/theos-action@v1
+        with:
+          theos-version: master
 
       - name: Build DEB
         run: |
