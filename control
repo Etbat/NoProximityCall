@@ -1,0 +1,8 @@
+Package: com.yourname.noproximitycall
+Name: NoProximityCall
+Version: 0.0.1
+Architecture: iphoneos-arm64
+Maintainer: YourName
+Description: Disable proximity sensor auto screen off for Phone call and WeChat voice call on RootHide iOS16. No other functions. Uninstall to revert.
+Depends: libroothide, firmware (>=16.0), firmware (<=16.7.10)
+Section: Tweaks
