@@ -17,9 +17,6 @@ jobs:
       - name: Clone official Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git ~/theos
-          export THEOS=~/theos
-          chmod +x ~/theos/bin/install-theos
-          ~/theos/bin/install-theos
         env:
           THEOS: $HOME/theos
 
