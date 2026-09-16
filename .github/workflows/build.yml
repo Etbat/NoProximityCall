@@ -9,7 +9,6 @@ jobs:
     runs-on: macos-latest
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -17,16 +16,12 @@ jobs:
         shell: bash
         run: |
           export THEOS="$HOME/theos"
-
-          git clone --recursive \
-            https://github.com/roothide/theos.git \
-            "$THEOS"
+          git clone --recursive https://github.com/roothide/theos.git "$THEOS"
 
       - name: Install iOS SDK
         shell: bash
         run: |
           export THEOS="$HOME/theos"
-
           mkdir -p "$THEOS/sdks"
 
           echo "Downloading iPhoneOS16.5.sdk..."
@@ -42,18 +37,6 @@ jobs:
           echo "Installed SDKs:"
           ls -lah "$THEOS/sdks"
 
-      - name: Check Theos
-        shell: bash
-        run: |
-          export THEOS="$HOME/theos"
-
-          echo "THEOS=$THEOS"
-          echo "SDKs:"
-          ls -lah "$THEOS/sdks"
-
-          echo "Theos version:"
-          "$THEOS/bin/logos.pl" --version || true
-
       - name: Build
         shell: bash
         run: |
@@ -68,9 +51,7 @@ jobs:
       - name: Show package
         shell: bash
         run: |
-          echo "================================="
           echo "Generated DEB:"
-          echo "================================="
           ls -lah packages/
 
       - name: Upload DEB
