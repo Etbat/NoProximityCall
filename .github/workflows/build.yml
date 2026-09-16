@@ -1,35 +1,57 @@
-name: Build Tweak
+name: Build NoProximityCall
+
 on:
-  push:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-latest
+
     steps:
-      - name: Checkout source
+
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install RootHide Theos
+        shell: bash
         run: |
-          brew install git make ldid
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/roothide/theos/master/bin/install-theos)"
 
-      - name: Setup Theos
+      - name: Install iOS SDK
+        shell: bash
         run: |
-          git clone --recursive https://github.com/theos/theos.git ~/theos
-        env:
-          THEOS: $HOME/theos
+          mkdir -p "$HOME/theos/sdks"
 
-      - name: Build DEB
+          curl -L \
+            "https://github.com/theos/sdks/releases/latest/download/iPhoneOS16.5.sdk.tar.xz" \
+            -o /tmp/iPhoneOS16.5.sdk.tar.xz
+
+          tar -xJf \
+            /tmp/iPhoneOS16.5.sdk.tar.xz \
+            -C "$HOME/theos/sdks"
+
+      - name: Build
+        shell: bash
         run: |
-          export THEOS=~/theos
+          export THEOS="$HOME/theos"
+
           make clean
-          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
-        env:
-          THEOS: $HOME/theos
 
-      - name: Upload deb artifact
+          make package \
+            FINALPACKAGE=1 \
+            THEOS_PACKAGE_SCHEME=roothide
+
+      - name: Show package
+        shell: bash
+        run: |
+          echo "================================="
+          echo "Generated DEB:"
+          echo "================================="
+          ls -lah packages/
+
+      - name: Upload DEB
         uses: actions/upload-artifact@v4
         with:
-          name: NoProximityCall-deb
+          name: NoProximityCall-RootHide
           path: packages/*.deb
+          if-no-files-found: error
