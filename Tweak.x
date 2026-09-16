@@ -1,41 +1,49 @@
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import <dlfcn.h>
-#import <substrate.h>
 
 typedef void (*BKSHIDServicesRequestProximityDetectionMode_t)(int mode);
 
 static BKSHIDServicesRequestProximityDetectionMode_t
-BKSHIDServicesRequestProximityDetectionMode = NULL;
+gRequestProximityDetectionMode = NULL;
 
-static void DisableProximity(void)
+static void LoadBackBoardServices(void)
 {
-    if (!BKSHIDServicesRequestProximityDetectionMode) {
-        void *handle = dlopen(
-            "/System/Library/PrivateFrameworks/BackBoardServices.framework/BackBoardServices",
-            RTLD_LAZY
-        );
-
-        if (handle) {
-            BKSHIDServicesRequestProximityDetectionMode =
-                (BKSHIDServicesRequestProximityDetectionMode_t)
-                dlsym(handle, "BKSHIDServicesRequestProximityDetectionMode");
-        }
+    if (gRequestProximityDetectionMode != NULL) {
+        return;
     }
 
-    if (BKSHIDServicesRequestProximityDetectionMode) {
-        BKSHIDServicesRequestProximityDetectionMode(0);
+    void *handle = dlopen(
+        "/System/Library/PrivateFrameworks/BackBoardServices.framework/BackBoardServices",
+        RTLD_LAZY
+    );
+
+    if (handle == NULL) {
+        NSLog(@"[NoProximityCall] Failed to load BackBoardServices");
+        return;
+    }
+
+    gRequestProximityDetectionMode =
+        (BKSHIDServicesRequestProximityDetectionMode_t)
+        dlsym(handle, "BKSHIDServicesRequestProximityDetectionMode");
+
+    if (gRequestProximityDetectionMode != NULL) {
+        NSLog(@"[NoProximityCall] BKSHIDServicesRequestProximityDetectionMode loaded");
+    } else {
+        NSLog(@"[NoProximityCall] Failed to find BKSHIDServicesRequestProximityDetectionMode");
     }
 }
 
-/*
- * SpringBoard
- *
- * iOS 电话进入通话状态时会调用：
- *
- * _updateRejectedInputSettingsForInCallState:isOutgoing:triggeredbyRouteWillChangeToReceiverNotification:
- *
- * 在这里关闭 proximity detection。
- */
+static void DisableProximity(void)
+{
+    LoadBackBoardServices();
+
+    if (gRequestProximityDetectionMode != NULL) {
+        NSLog(@"[NoProximityCall] Disable proximity detection");
+
+        gRequestProximityDetectionMode(0);
+    }
+}
 
 %hook SpringBoard
 
@@ -44,6 +52,13 @@ static void DisableProximity(void)
             triggeredbyRouteWillChangeToReceiverNotification:(char)triggered
 {
     %orig(state, outgoing, triggered);
+
+    NSLog(
+        @"[NoProximityCall] InCallState=%d outgoing=%d triggered=%d",
+        state,
+        outgoing,
+        triggered
+    );
 
     if (state) {
         DisableProximity();
