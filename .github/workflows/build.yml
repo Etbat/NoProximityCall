@@ -27,7 +27,7 @@ jobs:
         run: |
           export THEOS=~/theos
           make clean
-          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
         env:
           THEOS: $HOME/theos
 
