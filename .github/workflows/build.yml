@@ -59,4 +59,3 @@ jobs:
           name: NoProximityCall-RootHide
           path: packages/*.deb
           if-no-files-found: error
-```
