@@ -20,29 +20,11 @@ jobs:
         env:
           THEOS: $HOME/theos
 
-      - name: Create roothide scheme
-        run: |
-          mkdir -p ~/theos/makefiles/package/arch/all
-          cat > ~/theos/makefiles/package/roothide.mk << 'EOF'
-          ifeq ($(THEOS_PACKAGE_SCHEME),roothide)
-          include $(THEOS_MAKE_PATH)/package/deb.mk
-          
-          _THEOS_PACKAGE_MAKE_DIRS := $(addprefix -d ,$(foreach dir,$(sort $(dir $(wildcard $(THEOS_STAGING_DIR)/*/%))),$(patsubst %/,%,$(dir))))
-          
-          before-package::
-          	@echo "Building roothide package..."
-          
-          THEOS_PACKAGE_SCHEME = roothide
-          endif
-          EOF
-        env:
-          THEOS: $HOME/theos
-
       - name: Build DEB
         run: |
           export THEOS=~/theos
           make clean
-          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
         env:
           THEOS: $HOME/theos
 
