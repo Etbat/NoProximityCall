@@ -1,8 +1,8 @@
 Package: com.dinson.noproximitycall
 Name: NoProximityCall
-Version: 1.0.2
+Version: 1.1.0
 Architecture: iphoneos-arm64
-Description: Disable proximity monitoring in Phone and WeChat.
+Description: Disable proximity screen off during phone calls.
 Maintainer: Etbat
 Author: Etbat
 Section: Tweaks
