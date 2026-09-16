@@ -14,9 +14,27 @@ jobs:
         run: |
           brew install git make ldid
 
-      - name: Clone official Theos
+      - name: Setup Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git ~/theos
+        env:
+          THEOS: $HOME/theos
+
+      - name: Create roothide scheme
+        run: |
+          mkdir -p ~/theos/makefiles/package/arch/all
+          cat > ~/theos/makefiles/package/roothide.mk << 'EOF'
+          ifeq ($(THEOS_PACKAGE_SCHEME),roothide)
+          include $(THEOS_MAKE_PATH)/package/deb.mk
+          
+          _THEOS_PACKAGE_MAKE_DIRS := $(addprefix -d ,$(foreach dir,$(sort $(dir $(wildcard $(THEOS_STAGING_DIR)/*/%))),$(patsubst %/,%,$(dir))))
+          
+          before-package::
+          	@echo "Building roothide package..."
+          
+          THEOS_PACKAGE_SCHEME = roothide
+          endif
+          EOF
         env:
           THEOS: $HOME/theos
 
