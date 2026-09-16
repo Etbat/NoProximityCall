@@ -12,7 +12,8 @@ TWEAK_NAME = NoProximityCall
 
 NoProximityCall_FILES = Tweak.x
 NoProximityCall_CFLAGS = -fobjc-arc
-NoProximityCall_FRAMEWORKS = UIKit
+NoProximityCall_FRAMEWORKS = Foundation
+
 NoProximityCall_PLIST = NoProximityCall.plist
 
 include $(THEOS_MAKE_PATH)/tweak.mk
