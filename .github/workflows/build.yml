@@ -1,8 +1,38 @@
-- name: Clone official Theos
-  run: |
-    git clone --recursive https://github.com/theos/theos.git ~/theos
-    export THEOS=~/theos
-    chmod +x ~/theos/bin/install-theos
-    ~/theos/bin/install-theos
-  env:
-    THEOS: $HOME/theos
+name: Build Tweak
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew install git make ldid
+
+      - name: Clone official Theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          export THEOS=~/theos
+          chmod +x ~/theos/bin/install-theos
+          ~/theos/bin/install-theos
+        env:
+          THEOS: $HOME/theos
+
+      - name: Build DEB
+        run: |
+          export THEOS=~/theos
+          make clean
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+        env:
+          THEOS: $HOME/theos
+
+      - name: Upload deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NoProximityCall-deb
+          path: packages/*.deb
