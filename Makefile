@@ -10,5 +10,6 @@ NoProximityCall_FILES = Tweak.x
 NoProximityCall_CFLAGS = -fobjc-arc
 NoProximityCall_FRAMEWORKS = UIKit
 NoProximityCall_PLIST = NoProximityCall.plist
+NoProximityCall_DEPENDENCIES = libroothide
 
 include $(THEOS_MAKE_PATH)/tweak.mk
