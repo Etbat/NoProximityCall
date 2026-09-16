@@ -8,8 +8,10 @@ jobs:
     runs-on: macos-latest
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
+
 
       - name: Install RootHide Theos
         shell: bash
@@ -19,6 +21,7 @@ jobs:
           git clone --recursive \
             https://github.com/roothide/theos.git \
             "$THEOS"
+
 
       - name: Install iOS SDK
         shell: bash
@@ -33,30 +36,40 @@ jobs:
             "https://github.com/theos/sdks/releases/latest/download/iPhoneOS16.5.sdk.tar.xz" \
             -o /tmp/iPhoneOS16.5.sdk.tar.xz
 
+
           echo "Extracting SDK..."
 
           tar -xJf \
             /tmp/iPhoneOS16.5.sdk.tar.xz \
             -C "$THEOS/sdks"
 
-          echo "Installed SDKs:"
-          find "$THEOS/sdks" -maxdepth 1 -type d -name "*.sdk" -print
 
-      - name: Check SDK
+          echo "Installed SDKs:"
+          find "$THEOS/sdks" -maxdepth 1 -type d -name "*.sdk"
+
+
+      - name: Install ldid
+        shell: bash
+        run: |
+          brew install ldid
+
+          echo "ldid version:"
+          ldid -v || true
+
+
+      - name: Check Environment
         shell: bash
         run: |
           export THEOS="$HOME/theos"
 
-          echo "THEOS = $THEOS"
-          echo "SDK directory:"
+          echo "THEOS=$THEOS"
+
+          echo "SDK:"
           ls -lah "$THEOS/sdks"
 
-          if [ ! -d "$THEOS/sdks/iPhoneOS16.5.sdk" ]; then
-            echo "ERROR: iPhoneOS16.5.sdk was not installed."
-            exit 1
-          fi
+          echo "ldid:"
+          which ldid
 
-          echo "iPhoneOS16.5.sdk found."
 
       - name: Build
         shell: bash
@@ -69,14 +82,16 @@ jobs:
             FINALPACKAGE=1 \
             THEOS_PACKAGE_SCHEME=roothide
 
+
       - name: Show package
         shell: bash
         run: |
-          echo "================================="
+          echo "=============================="
           echo "Generated DEB:"
-          echo "================================="
+          echo "=============================="
 
           ls -lah packages/
+
 
       - name: Upload DEB
         uses: actions/upload-artifact@v4
