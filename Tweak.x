@@ -1,68 +1,32 @@
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
-#import <dlfcn.h>
-
-typedef void (*BKSHIDServicesRequestProximityDetectionMode_t)(int mode);
-
-static BKSHIDServicesRequestProximityDetectionMode_t
-gRequestProximityDetectionMode = NULL;
-
-static void LoadBackBoardServices(void)
-{
-    if (gRequestProximityDetectionMode != NULL) {
-        return;
-    }
-
-    void *handle = dlopen(
-        "/System/Library/PrivateFrameworks/BackBoardServices.framework/BackBoardServices",
-        RTLD_LAZY
-    );
-
-    if (handle == NULL) {
-        NSLog(@"[NoProximityCall] Failed to load BackBoardServices");
-        return;
-    }
-
-    gRequestProximityDetectionMode =
-        (BKSHIDServicesRequestProximityDetectionMode_t)
-        dlsym(handle, "BKSHIDServicesRequestProximityDetectionMode");
-
-    if (gRequestProximityDetectionMode != NULL) {
-        NSLog(@"[NoProximityCall] BKSHIDServicesRequestProximityDetectionMode loaded");
-    } else {
-        NSLog(@"[NoProximityCall] Failed to find BKSHIDServicesRequestProximityDetectionMode");
-    }
-}
-
-static void DisableProximity(void)
-{
-    LoadBackBoardServices();
-
-    if (gRequestProximityDetectionMode != NULL) {
-        NSLog(@"[NoProximityCall] Disable proximity detection");
-
-        gRequestProximityDetectionMode(0);
-    }
-}
+#import <objc/runtime.h>
 
 %hook SpringBoard
 
-- (void)_updateRejectedInputSettingsForInCallState:(char)state
-                                         isOutgoing:(char)outgoing
-            triggeredbyRouteWillChangeToReceiverNotification:(char)triggered
+- (void)_proximityChanged:(id)arg1
 {
-    %orig(state, outgoing, triggered);
+    NSLog(@"[NoProximityCall] >>> BLOCK _proximityChanged: %@", arg1);
 
-    NSLog(
-        @"[NoProximityCall] InCallState=%d outgoing=%d triggered=%d",
-        state,
-        outgoing,
-        triggered
-    );
-
-    if (state) {
-        DisableProximity();
-    }
+    // 故意不执行 %orig
+    // 直接阻止 SpringBoard 根据 proximity 状态继续处理
+    return;
 }
 
 %end
+
+%ctor
+{
+    NSLog(@"[NoProximityCall] SpringBoard tweak loaded");
+
+    Class cls = objc_getClass("SpringBoard");
+
+    if (cls) {
+        SEL sel = NSSelectorFromString(@"_proximityChanged:");
+
+        if ([cls instancesRespondToSelector:sel]) {
+            NSLog(@"[NoProximityCall] FOUND _proximityChanged:");
+        } else {
+            NSLog(@"[NoProximityCall] ERROR: _proximityChanged: NOT FOUND");
+        }
+    }
+}
