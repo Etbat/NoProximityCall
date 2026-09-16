@@ -1,23 +1,53 @@
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
+#import <dlfcn.h>
+#import <substrate.h>
 
-%hook UIDevice
+typedef void (*BKSHIDServicesRequestProximityDetectionMode_t)(int mode);
 
-// 阻止 Phone / WeChat 开启距离感应监测
-- (void)setProximityMonitoringEnabled:(BOOL)enabled
+static BKSHIDServicesRequestProximityDetectionMode_t
+BKSHIDServicesRequestProximityDetectionMode = NULL;
+
+static void DisableProximity(void)
 {
-    %orig(NO);
+    if (!BKSHIDServicesRequestProximityDetectionMode) {
+        void *handle = dlopen(
+            "/System/Library/PrivateFrameworks/BackBoardServices.framework/BackBoardServices",
+            RTLD_LAZY
+        );
+
+        if (handle) {
+            BKSHIDServicesRequestProximityDetectionMode =
+                (BKSHIDServicesRequestProximityDetectionMode_t)
+                dlsym(handle, "BKSHIDServicesRequestProximityDetectionMode");
+        }
+    }
+
+    if (BKSHIDServicesRequestProximityDetectionMode) {
+        BKSHIDServicesRequestProximityDetectionMode(0);
+    }
 }
 
-// 查询距离感应是否开启时，始终返回 NO
-- (BOOL)isProximityMonitoringEnabled
-{
-    return NO;
-}
+/*
+ * SpringBoard
+ *
+ * iOS 电话进入通话状态时会调用：
+ *
+ * _updateRejectedInputSettingsForInCallState:isOutgoing:triggeredbyRouteWillChangeToReceiverNotification:
+ *
+ * 在这里关闭 proximity detection。
+ */
 
-// 查询距离状态时，始终返回“远离”
-- (BOOL)proximityState
+%hook SpringBoard
+
+- (void)_updateRejectedInputSettingsForInCallState:(char)state
+                                         isOutgoing:(char)outgoing
+            triggeredbyRouteWillChangeToReceiverNotification:(char)triggered
 {
-    return NO;
+    %orig(state, outgoing, triggered);
+
+    if (state) {
+        DisableProximity();
+    }
 }
 
 %end
