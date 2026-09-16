@@ -1,6 +1,6 @@
 Package: com.dinson.noproximitycall
 Name: NoProximityCall
-Version: 1.1.0
+Version: 1.2.0
 Architecture: iphoneos-arm64
 Description: Disable proximity screen off during phone calls.
 Maintainer: Etbat
