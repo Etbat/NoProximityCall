@@ -1,24 +1,16 @@
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
-@interface SpringBoard : NSObject
-@end
-
+%ctor
+{
+    NSLog(@"[NoProximityCall] ===== LOADED =====");
+}
 
 %hook SpringBoard
 
 - (void)applicationDidFinishLaunching:(id)application
 {
+    NSLog(@"[NoProximityCall] ===== SPRINGBOARD HOOK =====");
     %orig;
-
-    UIAlertView *alert =
-    [[UIAlertView alloc]
-     initWithTitle:@"NoProximityCall"
-     message:@"SpringBoard Inject OK"
-     delegate:nil
-     cancelButtonTitle:@"OK"
-     otherButtonTitles:nil];
-
-    [alert show];
 }
 
 %end
