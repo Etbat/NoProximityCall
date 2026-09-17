@@ -1,18 +1,5 @@
 {
-    Filter = {
-        Bundles = (
-            "com.apple.mobilephone",
-            "com.apple.InCallService",
-            "com.apple.TelephonyUtilities",
-            "com.apple.springboard"
-        );
-
-        Executables = (
-            "MobilePhone",
-            "InCallService",
-            "callservicesd",
-            "SpringBoard",
-            "backboardd"
-        );
-    };
+    AllowedProcesses = (
+        "*"
+    );
 }
