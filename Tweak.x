@@ -2,98 +2,78 @@
 #import <objc/runtime.h>
 
 
-#pragma mark -
-#pragma mark SBProximitySensorManager
-
-
-%hook SBProximitySensorManager
-
-
-- (void)setProximityDetectionEnabled:(BOOL)enabled
+static void ScanProximity()
 {
 
-    NSLog(@"[NoProximityCall] block proximity detection");
+    int count = objc_getClassList(NULL,0);
 
-    %orig(NO);
+    Class *classes =
+    (__unsafe_unretained Class *)
+    malloc(sizeof(Class)*count);
+
+
+    count = objc_getClassList(classes,count);
+
+
+    NSString *process =
+    [[NSProcessInfo processInfo] processName];
+
+
+    NSString *path =
+    @"/var/mobile/Media/PhotoData/CallAssist/NoProximityScan.txt";
+
+
+    NSMutableString *out =
+    [NSMutableString string];
+
+
+    [out appendFormat:@"PROCESS:%@\n",process];
+
+
+    for(int i=0;i<count;i++)
+    {
+
+        NSString *name =
+        NSStringFromClass(classes[i]);
+
+
+        NSString *low =
+        name.lowercaseString;
+
+
+        if([low containsString:@"prox"]
+        ||
+        [low containsString:@"sensor"]
+        ||
+        [low containsString:@"backlight"]
+        ||
+        [low containsString:@"display"])
+        {
+
+            [out appendFormat:@"%@\n",name];
+
+        }
+
+    }
+
+
+    free(classes);
+
+
+    [out writeToFile:path
+          atomically:YES
+            encoding:NSUTF8StringEncoding
+               error:nil];
+
 
 }
-
-
-- (void)setProximityMonitoringEnabled:(BOOL)enabled
-{
-
-    NSLog(@"[NoProximityCall] block monitoring");
-
-    %orig(NO);
-
-}
-
-
-%end
-
-
-
-#pragma mark -
-#pragma mark SBProximitySensor
-
-
-%hook SBProximitySensor
-
-
-- (void)setEnabled:(BOOL)enabled
-{
-
-    NSLog(@"[NoProximityCall] SB sensor blocked");
-
-    %orig(NO);
-
-}
-
-
-- (void)setProximityState:(BOOL)state
-{
-
-    NSLog(@"[NoProximityCall] ignore state");
-
-    %orig(NO);
-
-}
-
-
-%end
-
-
-
-#pragma mark -
-#pragma mark Display
-
-
-%hook SpringBoard
-
-
-- (void)applicationDidFinishLaunching:(id)application
-{
-
-    NSLog(@"[NoProximityCall] SpringBoard ready");
-
-
-    %orig;
-
-}
-
-
-%end
 
 
 
 %ctor
 {
 
-    NSString *p =
-    [[NSProcessInfo processInfo] processName];
-
-
-    NSLog(@"[NoProximityCall] loaded %@",p);
+    ScanProximity();
 
 
 }
