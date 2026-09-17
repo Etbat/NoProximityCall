@@ -1,19 +1,42 @@
-ARCHS = arm64 arm64e
+#import <UIKit/UIKit.h>
 
-TARGET = iphone:clang:16.5:15.0
+%ctor
+{
+    NSLog(@"[NoProximityCall] ===== LOADED =====");
+}
 
-THEOS_PACKAGE_SCHEME = roothide
+%hook SpringBoard
 
-INSTALL_TARGET_PROCESSES = SpringBoard
+- (void)applicationDidFinishLaunching:(id)application
+{
+    %orig;
 
-include $(THEOS)/makefiles/common.mk
+    NSLog(@"[NoProximityCall] SpringBoard applicationDidFinishLaunching");
 
-TWEAK_NAME = NoProximityCall
+    UIAlertController *alert =
+        [UIAlertController alertControllerWithTitle:@"NoProximityCall"
+                                            message:@"SpringBoard Inject OK"
+                                     preferredStyle:UIAlertControllerStyleAlert];
 
-NoProximityCall_FILES = Tweak.x
-NoProximityCall_CFLAGS = -fobjc-arc
-NoProximityCall_FRAMEWORKS = Foundation
+    [alert addAction:
+        [UIAlertAction actionWithTitle:@"OK"
+                                 style:UIAlertActionStyleDefault
+                               handler:nil]];
 
-NoProximityCall_PLIST = NoProximityCall.plist
+    UIWindow *window = nil;
 
-include $(THEOS_MAKE_PATH)/tweak.mk
+    for (UIWindow *w in [UIApplication sharedApplication].windows) {
+        if (w.isKeyWindow) {
+            window = w;
+            break;
+        }
+    }
+
+    if (window.rootViewController) {
+        [window.rootViewController presentViewController:alert
+                                                 animated:YES
+                                               completion:nil];
+    }
+}
+
+%end
