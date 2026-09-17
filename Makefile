@@ -9,7 +9,9 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = NoProximityCall
 
 NoProximityCall_FILES = Tweak.x
+
 NoProximityCall_CFLAGS = -fobjc-arc
-NoProximityCall_FRAMEWORKS = Foundation
+
+NoProximityCall_FRAMEWORKS = UIKit Foundation
 
 include $(THEOS_MAKE_PATH)/tweak.mk
