@@ -1,4 +1,4 @@
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
 %ctor
 {
@@ -9,34 +9,8 @@
 
 - (void)applicationDidFinishLaunching:(id)application
 {
+    NSLog(@"[NoProximityCall] ===== SPRINGBOARD HOOK =====");
     %orig;
-
-    NSLog(@"[NoProximityCall] SpringBoard applicationDidFinishLaunching");
-
-    UIAlertController *alert =
-        [UIAlertController alertControllerWithTitle:@"NoProximityCall"
-                                            message:@"SpringBoard Inject OK"
-                                     preferredStyle:UIAlertControllerStyleAlert];
-
-    [alert addAction:
-        [UIAlertAction actionWithTitle:@"OK"
-                                 style:UIAlertActionStyleDefault
-                               handler:nil]];
-
-    UIWindow *window = nil;
-
-    for (UIWindow *w in [UIApplication sharedApplication].windows) {
-        if (w.isKeyWindow) {
-            window = w;
-            break;
-        }
-    }
-
-    if (window.rootViewController) {
-        [window.rootViewController presentViewController:alert
-                                                 animated:YES
-                                               completion:nil];
-    }
 }
 
 %end
