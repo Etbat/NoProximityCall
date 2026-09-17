@@ -1,45 +1,51 @@
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 
-%hook UIDevice
+static BOOL forceKeepAwake = NO;
 
 
-- (BOOL)proximityState
+
+%hook UIApplication
+
+
+- (void)setIdleTimerDisabled:(BOOL)disabled
 {
-    return NO;
+
+    if(forceKeepAwake)
+    {
+        %orig(YES);
+        return;
+    }
+
+
+    %orig;
+
 }
+
 
 
 %end
 
 
 
-%hook TUCall
-
-
-- (BOOL)isProximityEnabled
-{
-    return NO;
-}
-
-
-- (void)setProximityEnabled:(BOOL)value
-{
-    %orig(NO);
-}
-
-
-%end
-
-
-
+// 监听电话状态
 %hook TUCallCenter
 
 
-- (BOOL)isProximityEnabled
+- (void)handleCallStatusChanged:(id)arg1
 {
-    return NO;
+
+    forceKeepAwake = YES;
+
+    [[UIApplication sharedApplication]
+     setIdleTimerDisabled:YES];
+
+
+    %orig;
+
 }
+
 
 
 %end
@@ -54,5 +60,28 @@
 
 
     NSLog(@"[NoProximityCall] loaded %@",process);
+
+
+
+    if([process isEqualToString:@"MobilePhone"] ||
+       [process isEqualToString:@"InCallService"])
+    {
+
+        forceKeepAwake = YES;
+
+
+        dispatch_after(
+        dispatch_time(DISPATCH_TIME_NOW,
+        2*NSEC_PER_SEC),
+        dispatch_get_main_queue(), ^{
+
+
+            [[UIApplication sharedApplication]
+             setIdleTimerDisabled:YES];
+
+
+        });
+
+    }
 
 }
