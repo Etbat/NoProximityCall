@@ -1,9 +1,17 @@
 Package: com.dinson.noproximitycall
+
 Name: NoProximityCall
-Version: 1.3.0
+
+Version: 1.4.0
+
 Architecture: iphoneos-arm64e
-Description: NoProximityCall injection test
+
+Description: Disable proximity sensor during calls
+
 Maintainer: DINSON
+
 Author: DINSON
+
 Section: Tweaks
+
 Depends: firmware (>= 15.0)
