@@ -2,98 +2,49 @@
 #import <UIKit/UIKit.h>
 
 
-static void WriteBackboardMark()
-{
-    NSString *process =
-    [[NSProcessInfo processInfo] processName];
-
-
-    NSString *text =
-    [NSString stringWithFormat:
-     @"NoProximityCall loaded: %@\n",
-     process];
-
-
-    NSString *path =
-    @"/var/jb/tmp/NoProximityCall.txt";
-
-
-    [text writeToFile:path
-           atomically:YES
-             encoding:NSUTF8StringEncoding
-                error:nil];
-
-
-    NSLog(@"%@", text);
-}
-
-
-
-static void ShowSpringBoardAlert()
+static void alert(NSString *msg)
 {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-                                 (int64_t)(5*NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{
+    2*NSEC_PER_SEC),
+    dispatch_get_main_queue(), ^{
 
+        UIWindow *window=nil;
 
-        UIWindow *window = nil;
-
-
-        for (UIScene *scene in
-             UIApplication.sharedApplication.connectedScenes)
+        for(UIWindow *w in
+        UIApplication.sharedApplication.windows)
         {
-
-            if (![scene isKindOfClass:
-                  [UIWindowScene class]])
-                continue;
-
-
-            UIWindowScene *ws =
-            (UIWindowScene *)scene;
-
-
-            for (UIWindow *w in ws.windows)
+            if(!w.hidden)
             {
-                if (!w.hidden)
-                {
-                    window = w;
-                    break;
-                }
+                window=w;
+                break;
             }
         }
 
-
-        if (!window)
+        if(!window)
             return;
-
 
 
         UIViewController *vc =
         window.rootViewController;
 
 
-        while (vc.presentedViewController)
-            vc = vc.presentedViewController;
-
-
-
-        UIAlertController *alert =
+        UIAlertController *a =
         [UIAlertController
-         alertControllerWithTitle:@"NoProximityCall 1.9"
-         message:@"SpringBoard 注入成功"
-         preferredStyle:UIAlertControllerStyleAlert];
+        alertControllerWithTitle:@"NoProximityCall"
+        message:msg
+        preferredStyle:UIAlertControllerStyleAlert];
 
 
-        [alert addAction:
-         [UIAlertAction
-          actionWithTitle:@"OK"
-          style:UIAlertActionStyleDefault
-          handler:nil]];
+        [a addAction:
+        [UIAlertAction
+        actionWithTitle:@"OK"
+        style:UIAlertActionStyleDefault
+        handler:nil]];
 
 
-        [vc presentViewController:alert
-                         animated:YES
-                       completion:nil];
+        [vc presentViewController:a
+        animated:YES
+        completion:nil];
 
     });
 }
@@ -103,16 +54,30 @@ static void ShowSpringBoardAlert()
 %ctor
 {
 
-    NSString *process =
-    [[NSProcessInfo processInfo] processName];
+NSString *p =
+[[NSProcessInfo processInfo] processName];
 
 
-    WriteBackboardMark();
+NSLog(@"NoProximityCall %@",p);
 
 
-    if ([process isEqualToString:@"SpringBoard"])
-    {
-        ShowSpringBoardAlert();
-    }
+
+if([p isEqualToString:@"MobilePhone"])
+{
+    alert(@"MobilePhone 注入成功");
+}
+
+
+if([p isEqualToString:@"InCallService"])
+{
+    alert(@"InCallService 注入成功");
+}
+
+
+if([p isEqualToString:@"callservicesd"])
+{
+    alert(@"callservicesd 注入成功");
+}
+
 
 }
