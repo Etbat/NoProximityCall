@@ -1,74 +1,20 @@
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 
 
-static void ShowProximityAlert(NSString *msg)
+static void Notice(NSString *text)
 {
-    dispatch_async(dispatch_get_main_queue(), ^{
-
-        UIWindow *window = nil;
-
-        for (UIScene *scene in UIApplication.sharedApplication.connectedScenes)
-        {
-            if (![scene isKindOfClass:[UIWindowScene class]])
-                continue;
-
-            for (UIWindow *w in ((UIWindowScene *)scene).windows)
-            {
-                if (!w.hidden)
-                {
-                    window = w;
-                    break;
-                }
-            }
-        }
-
-
-        if (!window)
-            return;
-
-
-        UIViewController *vc = window.rootViewController;
-
-        while (vc.presentedViewController)
-            vc = vc.presentedViewController;
-
-
-        UIAlertController *alert =
-        [UIAlertController alertControllerWithTitle:@"NoProximityCall"
-                                            message:msg
-                                     preferredStyle:UIAlertControllerStyleAlert];
-
-
-        [alert addAction:
-         [UIAlertAction actionWithTitle:@"OK"
-                                  style:UIAlertActionStyleDefault
-                                handler:nil]];
-
-
-        [vc presentViewController:alert
-                         animated:YES
-                       completion:nil];
-
-    });
+    NSLog(@"[NoProximityCall] %@", text);
 }
 
 
+%hook TUCall
 
 
-%hook SBProximitySensor
-
-
-- (void)_proximityChanged:(BOOL)near
+- (void)setProximityMonitoringEnabled:(BOOL)enabled
 {
-    ShowProximityAlert(
-        near ?
-        @"SBProximitySensor ON" :
-        @"SBProximitySensor OFF"
-    );
+    Notice(@"TUCall proximity");
 
-
-    %orig;
+    %orig(NO);
 }
 
 
@@ -76,24 +22,37 @@ static void ShowProximityAlert(NSString *msg)
 
 
 
+%hook InCallService
 
-%hook UIDevice
 
-
-- (BOOL)proximityState
+- (void)setProximityState:(BOOL)state
 {
-    ShowProximityAlert(@"UIDevice proximityState called");
+    Notice(@"InCallService proximity");
 
-    return %orig;
+    %orig(NO);
 }
 
 
 %end
 
+
+
+%hook SBProximityManager
+
+
+- (void)setProximityEnabled:(BOOL)enabled
+{
+    Notice(@"SBProximityManager");
+
+    %orig(NO);
+}
+
+
+%end
 
 
 
 %ctor
 {
-    NSLog(@"[NoProximityCall] 1.6 loaded");
+    NSLog(@"[NoProximityCall] 1.7 loaded");
 }
