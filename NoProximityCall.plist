@@ -3,13 +3,7 @@
         Bundles = (
             "com.apple.springboard",
             "com.apple.mobilephone",
-            "com.apple.InCallService",
-            "com.apple.TelephonyUtilities"
-        );
-
-        Executables = (
-            "backboardd",
-            "callservicesd"
+            "com.apple.InCallService"
         );
     };
 }
