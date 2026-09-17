@@ -2,25 +2,47 @@
 #import <UIKit/UIKit.h>
 
 
-static void alert(NSString *msg)
+static UIWindow *GetKeyWindow()
 {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-    2*NSEC_PER_SEC),
-    dispatch_get_main_queue(), ^{
 
-        UIWindow *window=nil;
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes)
+    {
 
-        for(UIWindow *w in
-        UIApplication.sharedApplication.windows)
+        if (![scene isKindOfClass:[UIWindowScene class]])
+            continue;
+
+
+        UIWindowScene *windowScene =
+        (UIWindowScene *)scene;
+
+
+        for (UIWindow *window in windowScene.windows)
         {
-            if(!w.hidden)
+            if (!window.hidden && window.alpha > 0)
             {
-                window=w;
-                break;
+                return window;
             }
         }
+    }
 
-        if(!window)
+
+    return nil;
+}
+
+
+
+static void ShowAlert(NSString *msg)
+{
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                                 2 * NSEC_PER_SEC),
+                   dispatch_get_main_queue(), ^{
+
+
+        UIWindow *window = GetKeyWindow();
+
+
+        if (!window)
             return;
 
 
@@ -28,23 +50,30 @@ static void alert(NSString *msg)
         window.rootViewController;
 
 
-        UIAlertController *a =
+        while (vc.presentedViewController)
+        {
+            vc = vc.presentedViewController;
+        }
+
+
+
+        UIAlertController *alert =
         [UIAlertController
-        alertControllerWithTitle:@"NoProximityCall"
-        message:msg
-        preferredStyle:UIAlertControllerStyleAlert];
+         alertControllerWithTitle:@"NoProximityCall"
+         message:msg
+         preferredStyle:UIAlertControllerStyleAlert];
 
 
-        [a addAction:
-        [UIAlertAction
-        actionWithTitle:@"OK"
-        style:UIAlertActionStyleDefault
-        handler:nil]];
+        [alert addAction:
+         [UIAlertAction
+          actionWithTitle:@"OK"
+          style:UIAlertActionStyleDefault
+          handler:nil]];
 
 
-        [vc presentViewController:a
-        animated:YES
-        completion:nil];
+        [vc presentViewController:alert
+                         animated:YES
+                       completion:nil];
 
     });
 }
@@ -54,30 +83,41 @@ static void alert(NSString *msg)
 %ctor
 {
 
-NSString *p =
-[[NSProcessInfo processInfo] processName];
+    NSString *process =
+    [[NSProcessInfo processInfo] processName];
 
 
-NSLog(@"NoProximityCall %@",p);
+    NSLog(@"[NoProximityCall] Loaded %@",process);
 
 
 
-if([p isEqualToString:@"MobilePhone"])
-{
-    alert(@"MobilePhone 注入成功");
-}
+    if ([process isEqualToString:@"SpringBoard"])
+    {
+        ShowAlert(@"SpringBoard 注入成功");
+    }
 
 
-if([p isEqualToString:@"InCallService"])
-{
-    alert(@"InCallService 注入成功");
-}
+    if ([process isEqualToString:@"MobilePhone"])
+    {
+        ShowAlert(@"MobilePhone 注入成功");
+    }
 
 
-if([p isEqualToString:@"callservicesd"])
-{
-    alert(@"callservicesd 注入成功");
-}
+    if ([process isEqualToString:@"InCallService"])
+    {
+        ShowAlert(@"InCallService 注入成功");
+    }
 
+
+    if ([process isEqualToString:@"callservicesd"])
+    {
+        NSLog(@"[NoProximityCall] callservicesd loaded");
+    }
+
+
+    if ([process isEqualToString:@"backboardd"])
+    {
+        NSLog(@"[NoProximityCall] backboardd loaded");
+    }
 
 }
