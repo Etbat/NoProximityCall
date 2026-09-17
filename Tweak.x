@@ -1,58 +1,49 @@
 #import <Foundation/Foundation.h>
 
 
-static void Notice(NSString *text)
+static void WriteLog(NSString *text)
 {
-    NSLog(@"[NoProximityCall] %@", text);
+    NSString *path =
+    @"/var/mobile/NoProximityCall_loaded.txt";
+
+
+    NSString *old =
+    [NSString stringWithContentsOfFile:path
+                              encoding:NSUTF8StringEncoding
+                                 error:nil];
+
+
+    NSString *newText =
+    [NSString stringWithFormat:@"%@\n%@",
+     old ?: @"",
+     text];
+
+
+    [newText writeToFile:path
+              atomically:YES
+                encoding:NSUTF8StringEncoding
+                   error:nil];
 }
-
-
-%hook TUCall
-
-
-- (void)setProximityMonitoringEnabled:(BOOL)enabled
-{
-    Notice(@"TUCall proximity");
-
-    %orig(NO);
-}
-
-
-%end
-
-
-
-%hook InCallService
-
-
-- (void)setProximityState:(BOOL)state
-{
-    Notice(@"InCallService proximity");
-
-    %orig(NO);
-}
-
-
-%end
-
-
-
-%hook SBProximityManager
-
-
-- (void)setProximityEnabled:(BOOL)enabled
-{
-    Notice(@"SBProximityManager");
-
-    %orig(NO);
-}
-
-
-%end
 
 
 
 %ctor
 {
-    NSLog(@"[NoProximityCall] 1.7 loaded");
+
+    NSString *process =
+    [[NSProcessInfo processInfo] processName];
+
+
+    NSString *msg =
+    [NSString stringWithFormat:
+     @"NoProximityCall loaded in %@",
+     process];
+
+
+    WriteLog(msg);
+
+
+    NSLog(@"%@",msg);
+
+
 }
