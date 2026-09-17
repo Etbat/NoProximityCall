@@ -3,35 +3,55 @@
 
 static void ShowLoadedAlert(void)
 {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                                  (int64_t)(4.0 * NSEC_PER_SEC)),
                    dispatch_get_main_queue(), ^{
 
         UIApplication *app = [UIApplication sharedApplication];
 
-        UIWindow *window = app.keyWindow;
+        UIWindow *window = nil;
 
-        if (!window) {
-            for (UIWindow *w in app.windows) {
-                if (!w.hidden && w.windowLevel == UIWindowLevelNormal) {
+        // iOS 13+：通过 UIWindowScene 查找窗口
+        for (UIScene *scene in app.connectedScenes) {
+
+            if (![scene isKindOfClass:[UIWindowScene class]]) {
+                continue;
+            }
+
+            UIWindowScene *windowScene = (UIWindowScene *)scene;
+
+            if (windowScene.activationState != UISceneActivationStateForegroundActive &&
+                windowScene.activationState != UISceneActivationStateForegroundInactive) {
+                continue;
+            }
+
+            for (UIWindow *w in windowScene.windows) {
+
+                if (!w.hidden &&
+                    w.alpha > 0.0 &&
+                    w.windowLevel == UIWindowLevelNormal) {
+
                     window = w;
                     break;
                 }
             }
+
+            if (window) {
+                break;
+            }
         }
 
         if (!window) {
-            NSLog(@"[NoProximityCall] No window found");
+            NSLog(@"[NoProximityCall] No suitable window found");
             return;
         }
 
-        UIViewController *rootVC = window.rootViewController;
+        UIViewController *vc = window.rootViewController;
 
-        if (!rootVC) {
+        if (!vc) {
             NSLog(@"[NoProximityCall] No rootViewController found");
             return;
         }
-
-        UIViewController *vc = rootVC;
 
         while (vc.presentedViewController) {
             vc = vc.presentedViewController;
