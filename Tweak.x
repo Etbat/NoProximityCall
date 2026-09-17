@@ -1,96 +1,97 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 
-static void ShowLoadedAlert(void)
+
+static void ShowLoadedAlert()
 {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-                                  (int64_t)(4.0 * NSEC_PER_SEC)),
+                                 (int64_t)(5 * NSEC_PER_SEC)),
                    dispatch_get_main_queue(), ^{
-
-        UIApplication *app = [UIApplication sharedApplication];
 
         UIWindow *window = nil;
 
-        // iOS 13+：通过 UIWindowScene 查找窗口
-        for (UIScene *scene in app.connectedScenes) {
-
-            if (![scene isKindOfClass:[UIWindowScene class]]) {
+        for (UIScene *scene in [UIApplication sharedApplication].connectedScenes)
+        {
+            if (![scene isKindOfClass:[UIWindowScene class]])
                 continue;
-            }
 
-            UIWindowScene *windowScene = (UIWindowScene *)scene;
+            UIWindowScene *ws = (UIWindowScene *)scene;
 
-            if (windowScene.activationState != UISceneActivationStateForegroundActive &&
-                windowScene.activationState != UISceneActivationStateForegroundInactive) {
-                continue;
-            }
-
-            for (UIWindow *w in windowScene.windows) {
-
+            for (UIWindow *w in ws.windows)
+            {
                 if (!w.hidden &&
-                    w.alpha > 0.0 &&
-                    w.windowLevel == UIWindowLevelNormal) {
-
+                    w.alpha > 0 &&
+                    w.windowLevel == UIWindowLevelNormal)
+                {
                     window = w;
                     break;
                 }
             }
 
-            if (window) {
+            if (window)
                 break;
-            }
         }
 
-        if (!window) {
-            NSLog(@"[NoProximityCall] No suitable window found");
+
+        if (!window)
+        {
+            NSLog(@"[NoProximityCall] No window");
             return;
         }
+
 
         UIViewController *vc = window.rootViewController;
 
-        if (!vc) {
-            NSLog(@"[NoProximityCall] No rootViewController found");
-            return;
-        }
-
-        while (vc.presentedViewController) {
+        while (vc.presentedViewController)
+        {
             vc = vc.presentedViewController;
         }
 
+
         UIAlertController *alert =
         [UIAlertController alertControllerWithTitle:@"NoProximityCall"
-                                            message:@"插件已成功加载 ✓"
+                                            message:@"RootHide 注入成功"
                                      preferredStyle:UIAlertControllerStyleAlert];
 
+
         [alert addAction:
-         [UIAlertAction actionWithTitle:@"确定"
+         [UIAlertAction actionWithTitle:@"OK"
                                   style:UIAlertActionStyleDefault
                                 handler:nil]];
+
 
         [vc presentViewController:alert
                          animated:YES
                        completion:nil];
 
-        NSLog(@"[NoProximityCall] ===== ALERT SHOWN =====");
+
+        NSLog(@"[NoProximityCall] Alert shown");
+
     });
 }
 
 
+
 %ctor
 {
-    NSLog(@"[NoProximityCall] ===== LOADED =====");
+    NSLog(@"[NoProximityCall] ===== DYLIB LOADED =====");
 
     ShowLoadedAlert();
 }
 
 
+
 %hook SpringBoard
+
 
 - (void)applicationDidFinishLaunching:(id)application
 {
+
     NSLog(@"[NoProximityCall] ===== SPRINGBOARD HOOK =====");
 
     %orig;
+
 }
+
 
 %end
