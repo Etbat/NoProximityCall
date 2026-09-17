@@ -1,16 +1,15 @@
-#import <Foundation/Foundation.h>
+ARCHS = arm64 arm64e
 
-%ctor
-{
-    NSLog(@"[NoProximityCall] ===== LOADED =====");
-}
+TARGET = iphone:clang:16.5:15.0
 
-%hook SpringBoard
+INSTALL_TARGET_PROCESSES = SpringBoard
 
-- (void)applicationDidFinishLaunching:(id)application
-{
-    NSLog(@"[NoProximityCall] ===== SPRINGBOARD HOOK =====");
-    %orig;
-}
+include $(THEOS)/makefiles/common.mk
 
-%end
+TWEAK_NAME = NoProximityCall
+
+NoProximityCall_FILES = Tweak.x
+NoProximityCall_CFLAGS = -fobjc-arc
+NoProximityCall_FRAMEWORKS = Foundation
+
+include $(THEOS_MAKE_PATH)/tweak.mk
