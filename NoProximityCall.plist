@@ -7,14 +7,29 @@
 <dict>
 
     <key>Filter</key>
+
     <dict>
 
         <key>Bundles</key>
         <array>
+
             <string>com.apple.springboard</string>
+            <string>com.apple.SpringBoardServices</string>
+            <string>com.apple.UIKit</string>
+
+        </array>
+
+
+        <key>Executables</key>
+        <array>
+
+            <string>runningboardd</string>
+            <string>lsd</string>
+
         </array>
 
     </dict>
+
 
 </dict>
 </plist>
