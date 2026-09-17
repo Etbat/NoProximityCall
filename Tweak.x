@@ -1,47 +1,76 @@
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
 
-static void WriteLog()
+#pragma mark - UIDevice
+
+%hook UIDevice
+
+
+- (void)setProximityMonitoringEnabled:(BOOL)enabled
 {
-    NSString *process =
-    [[NSProcessInfo processInfo] processName];
+    NSLog(@"[NoProximityCall] block proximity enable");
 
-
-    NSString *path =
-    @"/var/mobile/Media/PhotoData/CallAssist/NoProximityCall.log";
-
-
-    NSString *old =
-    [NSString stringWithContentsOfFile:path
-                              encoding:NSUTF8StringEncoding
-                                 error:nil];
-
-
-    if(!old)
-        old = @"";
-
-
-    NSString *new =
-    [old stringByAppendingFormat:
-     @"Loaded: %@\n",
-     process];
-
-
-    [new writeToFile:path
-          atomically:YES
-            encoding:NSUTF8StringEncoding
-               error:nil];
-
-
-    NSLog(@"[NoProximityCall] %@",process);
+    %orig(NO);
 }
 
+
+- (BOOL)isProximityMonitoringEnabled
+{
+    return NO;
+}
+
+
+- (BOOL)proximityState
+{
+    return NO;
+}
+
+
+%end
+
+
+
+#pragma mark - NSNotification
+
+
+%hook NSNotificationCenter
+
+
+- (void)addObserver:(id)observer
+          selector:(SEL)selector
+              name:(NSNotificationName)name
+            object:(id)obj
+{
+
+    if([name containsString:@"Proximity"])
+    {
+        NSLog(@"[NoProximityCall] block notification %@",name);
+        return;
+    }
+
+
+    %orig;
+
+}
+
+
+%end
+
+
+
+#pragma mark - init
 
 
 %ctor
 {
 
-    WriteLog();
+    NSString *process =
+    [[NSProcessInfo processInfo] processName];
+
+
+    NSLog(@"[NoProximityCall] loaded %@",process);
+
 
 }
