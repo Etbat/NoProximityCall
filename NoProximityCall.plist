@@ -7,29 +7,22 @@
 <dict>
 
     <key>Filter</key>
-
     <dict>
 
         <key>Bundles</key>
         <array>
-
             <string>com.apple.springboard</string>
             <string>com.apple.mobilephone</string>
             <string>com.apple.InCallService</string>
-
         </array>
-
 
         <key>Executables</key>
         <array>
-
             <string>SpringBoard</string>
             <string>backboardd</string>
-
         </array>
 
     </dict>
-
 
 </dict>
 </plist>
