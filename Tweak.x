@@ -1,49 +1,35 @@
 #import <Foundation/Foundation.h>
 
-
-static void WriteLog(NSString *text)
+static void WriteProcessFile(void)
 {
-    NSString *path =
-    @"/var/mobile/NoProximityCall_loaded.txt";
+    NSString *process =
+        [[NSProcessInfo processInfo] processName];
 
+    NSString *path =
+        @"/tmp/NoProximityCall_loaded.txt";
 
     NSString *old =
-    [NSString stringWithContentsOfFile:path
-                              encoding:NSUTF8StringEncoding
-                                 error:nil];
+        [NSString stringWithContentsOfFile:path
+                                  encoding:NSUTF8StringEncoding
+                                     error:nil];
 
+    NSString *line =
+        [NSString stringWithFormat:@"Loaded in %@\n", process];
 
-    NSString *newText =
-    [NSString stringWithFormat:@"%@\n%@",
-     old ?: @"",
-     text];
+    NSString *content =
+        [NSString stringWithFormat:@"%@%@",
+         old ?: @"",
+         line];
 
+    [content writeToFile:path
+               atomically:YES
+                 encoding:NSUTF8StringEncoding
+                    error:nil];
 
-    [newText writeToFile:path
-              atomically:YES
-                encoding:NSUTF8StringEncoding
-                   error:nil];
+    NSLog(@"[NoProximityCall] %@", line);
 }
-
-
 
 %ctor
 {
-
-    NSString *process =
-    [[NSProcessInfo processInfo] processName];
-
-
-    NSString *msg =
-    [NSString stringWithFormat:
-     @"NoProximityCall loaded in %@",
-     process];
-
-
-    WriteLog(msg);
-
-
-    NSLog(@"%@",msg);
-
-
+    WriteProcessFile();
 }
