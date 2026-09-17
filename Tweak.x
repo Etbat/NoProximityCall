@@ -1,35 +1,82 @@
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
-static void WriteProcessFile(void)
+
+static void ShowAlert(void)
 {
-    NSString *process =
-        [[NSProcessInfo processInfo] processName];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                                  3 * NSEC_PER_SEC),
+                   dispatch_get_main_queue(), ^{
 
-    NSString *path =
-        @"/tmp/NoProximityCall_loaded.txt";
+        UIWindow *window = nil;
 
-    NSString *old =
-        [NSString stringWithContentsOfFile:path
-                                  encoding:NSUTF8StringEncoding
-                                     error:nil];
+        for (UIScene *scene in UIApplication.sharedApplication.connectedScenes)
+        {
+            if ([scene isKindOfClass:[UIWindowScene class]])
+            {
+                UIWindowScene *ws = (UIWindowScene *)scene;
 
-    NSString *line =
-        [NSString stringWithFormat:@"Loaded in %@\n", process];
+                for (UIWindow *w in ws.windows)
+                {
+                    if (!w.hidden)
+                    {
+                        window = w;
+                        break;
+                    }
+                }
+            }
+        }
 
-    NSString *content =
-        [NSString stringWithFormat:@"%@%@",
-         old ?: @"",
-         line];
 
-    [content writeToFile:path
-               atomically:YES
-                 encoding:NSUTF8StringEncoding
-                    error:nil];
+        if (!window)
+            return;
 
-    NSLog(@"[NoProximityCall] %@", line);
+
+        UIViewController *vc =
+        window.rootViewController;
+
+
+        while (vc.presentedViewController)
+            vc = vc.presentedViewController;
+
+
+        UIAlertController *alert =
+        [UIAlertController
+         alertControllerWithTitle:@"NoProximityCall"
+         message:@"SpringBoard 注入成功"
+         preferredStyle:UIAlertControllerStyleAlert];
+
+
+        [alert addAction:
+         [UIAlertAction
+          actionWithTitle:@"OK"
+          style:UIAlertActionStyleDefault
+          handler:nil]];
+
+
+        [vc presentViewController:alert
+                         animated:YES
+                       completion:nil];
+
+    });
 }
+
+
 
 %ctor
 {
-    WriteProcessFile();
+
+    NSString *process =
+    [[NSProcessInfo processInfo] processName];
+
+
+    NSLog(@"[NoProximityCall] Loaded in %@", process);
+
+
+
+    if ([process isEqualToString:@"SpringBoard"])
+    {
+        ShowAlert();
+    }
+
 }
