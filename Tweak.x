@@ -1,97 +1,32 @@
-#import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
-
-
-static void ShowLoadedAlert()
-{
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-                                 (int64_t)(5 * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{
-
-        UIWindow *window = nil;
-
-        for (UIScene *scene in [UIApplication sharedApplication].connectedScenes)
-        {
-            if (![scene isKindOfClass:[UIWindowScene class]])
-                continue;
-
-            UIWindowScene *ws = (UIWindowScene *)scene;
-
-            for (UIWindow *w in ws.windows)
-            {
-                if (!w.hidden &&
-                    w.alpha > 0 &&
-                    w.windowLevel == UIWindowLevelNormal)
-                {
-                    window = w;
-                    break;
-                }
-            }
-
-            if (window)
-                break;
-        }
-
-
-        if (!window)
-        {
-            NSLog(@"[NoProximityCall] No window");
-            return;
-        }
-
-
-        UIViewController *vc = window.rootViewController;
-
-        while (vc.presentedViewController)
-        {
-            vc = vc.presentedViewController;
-        }
-
-
-        UIAlertController *alert =
-        [UIAlertController alertControllerWithTitle:@"NoProximityCall"
-                                            message:@"RootHide 注入成功"
-                                     preferredStyle:UIAlertControllerStyleAlert];
-
-
-        [alert addAction:
-         [UIAlertAction actionWithTitle:@"OK"
-                                  style:UIAlertActionStyleDefault
-                                handler:nil]];
-
-
-        [vc presentViewController:alert
-                         animated:YES
-                       completion:nil];
-
-
-        NSLog(@"[NoProximityCall] Alert shown");
-
-    });
-}
-
-
-
-%ctor
-{
-    NSLog(@"[NoProximityCall] ===== DYLIB LOADED =====");
-
-    ShowLoadedAlert();
-}
-
 
 
 %hook SpringBoard
 
 
-- (void)applicationDidFinishLaunching:(id)application
+// iOS 15/16 常见距离感应控制入口之一
+- (void)_setProximityDetectionEnabled:(BOOL)enabled
 {
+    NSLog(@"[NoProximityCall] Block phone proximity enable=%d", enabled);
 
-    NSLog(@"[NoProximityCall] ===== SPRINGBOARD HOOK =====");
+    %orig(NO);
+}
 
-    %orig;
 
+// 备用接口
+- (void)setProximityDetectionEnabled:(BOOL)enabled
+{
+    NSLog(@"[NoProximityCall] Block proximity detection");
+
+    %orig(NO);
 }
 
 
 %end
+
+
+
+%ctor
+{
+    NSLog(@"[NoProximityCall] Phone mode loaded");
+}
