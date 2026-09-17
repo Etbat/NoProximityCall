@@ -1,30 +1,31 @@
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
 
-#pragma mark - UIDevice
+#pragma mark -
+#pragma mark SBProximitySensorManager
 
-%hook UIDevice
+
+%hook SBProximitySensorManager
+
+
+- (void)setProximityDetectionEnabled:(BOOL)enabled
+{
+
+    NSLog(@"[NoProximityCall] block proximity detection");
+
+    %orig(NO);
+
+}
 
 
 - (void)setProximityMonitoringEnabled:(BOOL)enabled
 {
-    NSLog(@"[NoProximityCall] block proximity enable");
+
+    NSLog(@"[NoProximityCall] block monitoring");
 
     %orig(NO);
-}
 
-
-- (BOOL)isProximityMonitoringEnabled
-{
-    return NO;
-}
-
-
-- (BOOL)proximityState
-{
-    return NO;
 }
 
 
@@ -32,23 +33,48 @@
 
 
 
-#pragma mark - NSNotification
+#pragma mark -
+#pragma mark SBProximitySensor
 
 
-%hook NSNotificationCenter
+%hook SBProximitySensor
 
 
-- (void)addObserver:(id)observer
-          selector:(SEL)selector
-              name:(NSNotificationName)name
-            object:(id)obj
+- (void)setEnabled:(BOOL)enabled
 {
 
-    if([name containsString:@"Proximity"])
-    {
-        NSLog(@"[NoProximityCall] block notification %@",name);
-        return;
-    }
+    NSLog(@"[NoProximityCall] SB sensor blocked");
+
+    %orig(NO);
+
+}
+
+
+- (void)setProximityState:(BOOL)state
+{
+
+    NSLog(@"[NoProximityCall] ignore state");
+
+    %orig(NO);
+
+}
+
+
+%end
+
+
+
+#pragma mark -
+#pragma mark Display
+
+
+%hook SpringBoard
+
+
+- (void)applicationDidFinishLaunching:(id)application
+{
+
+    NSLog(@"[NoProximityCall] SpringBoard ready");
 
 
     %orig;
@@ -60,17 +86,14 @@
 
 
 
-#pragma mark - init
-
-
 %ctor
 {
 
-    NSString *process =
+    NSString *p =
     [[NSProcessInfo processInfo] processName];
 
 
-    NSLog(@"[NoProximityCall] loaded %@",process);
+    NSLog(@"[NoProximityCall] loaded %@",p);
 
 
 }
